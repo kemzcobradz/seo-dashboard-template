@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO Dashboard — [Client Name]</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Google Sans', 'Roboto', Arial, sans-serif; background: #f0f2f5; color: #202124; }
+
+  /* Top Nav Bar */
+  .top-nav { background: #fff; border-bottom: 1px solid #dadce0; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .top-nav-left { display: flex; align-items: center; gap: 16px; }
+  .top-nav-left .logo { font-size: 18px; font-weight: 600; color: #1a73e8; }
+  .top-nav-left .logo span { color: #5f6368; font-weight: 400; font-size: 14px; }
+  .top-nav-right { display: flex; align-items: center; gap: 12px; }
+  .date-picker { background: #fff; border: 1px solid #dadce0; border-radius: 8px; padding: 6px 16px; font-size: 13px; color: #5f6368; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .date-picker:hover { background: #f8f9fa; }
+  .btn-reset { background: #fff; border: 1px solid #dadce0; border-radius: 8px; padding: 6px 16px; font-size: 13px; color: #5f6368; cursor: pointer; }
+  .btn-reset:hover { background: #f8f9fa; }
+  .btn-share { background: #1a73e8; color: #fff; border: none; border-radius: 8px; padding: 6px 20px; font-size: 13px; cursor: pointer; font-weight: 500; }
+  .btn-share:hover { background: #1557b0; }
+
+  /* Page Tabs */
+  .page-tabs { background: #fff; border-bottom: 1px solid #dadce0; padding: 0 24px; display: flex; gap: 0; }
+  .page-tab { padding: 12px 20px; font-size: 13px; font-weight: 500; color: #5f6368; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .page-tab:hover { color: #1a73e8; background: #f8f9fa; }
+  .page-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+
+  /* Filter Bar */
+  .filter-bar { background: #fff; border-bottom: 1px solid #dadce0; padding: 10px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .filter-chip { background: #e8f0fe; color: #1a73e8; border: 1px solid #d2e3fc; border-radius: 16px; padding: 4px 14px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .filter-chip .arrow { font-size: 10px; }
+  .filter-label { font-size: 12px; color: #5f6368; font-weight: 500; }
+
+  /* Main Content */
+  .main-content { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* Scorecards Row */
+  .scorecards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .scorecard { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #dadce0; }
+  .scorecard .label { font-size: 12px; color: #5f6368; font-weight: 500; margin-bottom: 8px; }
+  .scorecard .value { font-size: 28px; font-weight: 600; color: #202124; margin-bottom: 6px; }
+  .scorecard .change { font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .scorecard .change .abs { color: #5f6368; }
+  .scorecard .change .pct { padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .scorecard .change .pct.positive { background: #e6f4ea; color: #137333; }
+  .scorecard .change .pct.negative { background: #fce8e6; color: #c5221f; }
+  .scorecard .change .pct.neutral { background: #f1f3f4; color: #5f6368; }
+  .scorecard .sub-label { font-size: 11px; color: #80868b; margin-top: 2px; }
+
+  /* Charts Grid */
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .chart-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #dadce0; }
+  .chart-card .chart-title { font-size: 14px; font-weight: 600; color: #202124; margin-bottom: 4px; }
+  .chart-card .chart-subtitle { font-size: 11px; color: #80868b; margin-bottom: 16px; }
+  .chart-placeholder { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; }
+
+  /* Donut Chart */
+  .donut-container { display: flex; align-items: center; gap: 24px; }
+  .donut { width: 140px; height: 140px; border-radius: 50%; position: relative; }
+  .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .donut-center .big { font-size: 22px; font-weight: 700; color: #202124; }
+  .donut-center .small { font-size: 10px; color: #80868b; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-label { color: #5f6368; }
+  .legend-value { font-weight: 600; color: #202124; margin-left: auto; }
+  .legend-pct { color: #80868b; font-size: 11px; }
+
+  /* Line Chart Simulation */
+  .line-chart { width: 100%; height: 180px; position: relative; }
+  .line-chart svg { width: 100%; height: 100%; }
+  .chart-x-labels { display: flex; justify-content: space-between; margin-top: 8px; padding: 0 8px; }
+  .chart-x-labels span { font-size: 10px; color: #80868b; }
+
+  /* Bar Chart */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 12px; color: #5f6368; width: 100px; text-align: right; }
+  .bar-track { flex: 1; height: 24px; background: #f1f3f4; border-radius: 4px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; color: #fff; }
+  .bar-value { font-size: 12px; font-weight: 600; color: #202124; width: 60px; }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { text-align: left; font-size: 11px; color: #80868b; font-weight: 600; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid #dadce0; }
+  .data-table td { font-size: 13px; color: #202124; padding: 10px 12px; border-bottom: 1px solid #f1f3f4; }
+  .data-table tr:hover td { background: #f8f9fa; }
+
+  /* Sub Tabs */
+  .sub-tabs { display: flex; gap: 0; border-bottom: 1px solid #dadce0; margin-bottom: 16px; }
+  .sub-tab { padding: 10px 16px; font-size: 12px; font-weight: 500; color: #5f6368; cursor: pointer; border-bottom: 2px solid transparent; }
+  .sub-tab:hover { color: #1a73e8; }
+  .sub-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+
+  /* Stacked Bar */
+  .stacked-bar-container { margin-top: 16px; }
+  .stacked-bar-label { font-size: 12px; color: #5f6368; margin-bottom: 6px; }
+  .stacked-bar { display: flex; height: 32px; border-radius: 6px; overflow: hidden; }
+  .stacked-segment { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; }
+  .stacked-legend { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+  .stacked-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #5f6368; }
+
+  /* Footer */
+  .footer { padding: 12px 24px; font-size: 11px; color: #80868b; display: flex; justify-content: space-between; border-top: 1px solid #dadce0; background: #fff; }
+
+  /* Page sections - hide inactive */
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  /* Brand color override CSS variable */
+  :root { --brand-primary: #1a73e8; --brand-secondary: #34a853; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="top-nav-left">
+    <div class="logo">[Client Logo] <span>SEO Dashboard</span></div>
+  </div>
+  <div class="top-nav-right">
+    <div class="date-picker">📅 Apr 1, 2026 – Apr 30, 2026 ▾</div>
+    <button class="btn-reset">Reset</button>
+    <button class="btn-share">Share ▾</button>
+  </div>
+</div>
+
+<!-- PAGE TABS -->
+<div class="page-tabs">
+  <div class="page-tab active" onclick="switchPage(0)">GA — Website Overview PoP</div>
+  <div class="page-tab" onclick="switchPage(1)">GSC — Organic Overview PoP</div>
+  <div class="page-tab" onclick="switchPage(2)">GMB — My Business Overview PoP</div>
+</div>
+
+<!-- ==================== PAGE 1: WEBSITE OVERVIEW ==================== -->
+<div class="page-section active" id="page-0">
+  <div class="filter-bar">
+    <span class="filter-label">Period:</span>
+    <div class="filter-chip">Year ▾</div>
+    <div class="filter-chip">Percentage Change ▾</div>
+    <div class="filter-chip">Absolute Change ▾</div>
+    <div style="flex:1"></div>
+    <div class="filter-chip">Conversion ▾</div>
+    <div class="filter-chip">Behavior ▾</div>
+    <div class="filter-chip">Acquisition ▾</div>
+  </div>
+
+  <div class="main-content">
+    <!-- SCORECARDS -->
+    <div class="scorecards-row">
+      <div class="scorecard">
+        <div class="label">Sessions</div>
+        <div class="value">6,324</div>
+        <div class="change">
+          <span class="abs">−2 from prev.</span>
+          <span class="pct neutral">0.0%</span>
+        </div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Engaged sessions</div>
+        <div class="value">5,904</div>
+        <div class="change">
+          <span class="abs">−0.1% from prev.</span>
+        </div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Engagement rate</div>
+        <div class="value">93.36%</div>
+        <div class="change">
+          <span class="abs">−0.02% from prev.</span>
+        </div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Average session duration</div>
+        <div class="value">00:02:45</div>
+        <div class="change">
+          <span class="abs">00:00:20 from prev.</span>
+          <span class="pct positive">14.5%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="charts-grid">
+      <!-- Sessions Over Time -->
+      <div class="chart-card">
+        <div class="chart-title">Sessions Over Time</div>
+        <div class="chart-subtitle">Current period vs Previous period</div>
+        <div class="line-chart">
+          <svg viewBox="0 0 500 180" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="40" y1="20" x2="480" y2="20" stroke="#f1f3f4" stroke-width="1"/>
+            <line x1="40" y1="60" x2="480" y2="60" stroke="#f1f3f4" stroke-width="1"/>
+            <line x1="40" y1="100" x2="480" y2="100" stroke="#f1f3f4" stroke-width="1"/>
+            <line x1="40" y1="140" x2="480" y2="140" stroke="#f1f3f4" stroke-width="1"/>
+            <!-- Y axis labels -->
+            <text x="35" y="24" text-anchor="end" font-size="9" fill="#80868b">2K</text>
+            <text x="35" y="64" text-anchor="end" font-size="9" fill="#80868b">1.5K</text>
+            <text x="35" y="104" text-anchor="end" font-size="9" fill="#80868b">1K</text>
+            <text x="35" y="144" text-anchor="end" font-size="9" fill="#80868b">500</text>
+            <!-- Previous period (dashed) -->
+            <path d="M40,80 C80,70 120,90 160,60 S240,100 280,50 S360,110 400,40 S440,70 480,55" fill="none" stroke="#dadce0" stroke-width="2" stroke-dasharray="5,3"/>
+            <!-- Current period (solid) -->
+            <path d="M40,90 C80,75 120,95 160,65 S240,105 280,55 S360,115 400,45 S440,75 480,60" fill="none" stroke="#1a73e8" stroke-width="2.5"/>
+            <!-- Area fill under current -->
+            <path d="M40,90 C80,75 120,95 160,65 S240,105 280,55 S360,115 400,45 S440,75 480,60 L480,170 L40,170 Z" fill="url(#blueGrad)" opacity="0.15"/>
+            <defs>
+              <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1a73e8"/>
+                <stop offset="100%" stop-color="#1a73e8" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="chart-x-labels">
+            <span>Apr 1</span><span>Apr 5</span><span>Apr 10</span><span>Apr 15</span><span>Apr 20</span><span>Apr 25</span><span>Apr 30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions By Device -->
+      <div class="chart-card">
+        <div class="chart-title">Sessions By Device</div>
+        <div class="chart-subtitle">Device category breakdown</div>
+        <div class="donut-container">
+          <div class="donut" style="background: conic-gradient(#1a73e8 0% 71%, #34a853 71% 97.6%, #fbbc04 97.6% 100%);">
+            <div class="donut-center">
+              <div class="big">6,324</div>
+              <div class="small">Total</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#1a73e8"></div>
+              <span class="legend-label">mobile</span>
+              <span class="legend-value">4,527</span>
+              <span class="legend-pct">71%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#34a853"></div>
+              <span class="legend-label">desktop</span>
+              <span class="legend-value">1,694</span>
+              <span class="legend-pct">26.6%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#fbbc04"></div>
+              <span class="legend-label">tablet</span>
+              <span class="legend-value">158</span>
+              <span class="legend-pct">2.5%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="charts-grid">
+      <!-- Sessions By Country -->
+      <div class="chart-card">
+        <div class="chart-title">Sessions By Country</div>
+        <div class="chart-subtitle">Top countries by session count</div>
+        <table class="data-table">
+          <thead><tr><th>Country</th><th>Sessions</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td>🇨🇦 Canada</td><td>4,102</td><td><span class="pct positive" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">+2.1%</span></td></tr>
+            <tr><td>🇺🇸 United States</td><td>1,287</td><td><span class="pct negative" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">−1.3%</span></td></tr>
+            <tr><td>🇫🇷 France</td><td>456</td><td><span class="pct positive" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">+0.8%</span></td></tr>
+            <tr><td>🇬🇧 United Kingdom</td><td>234</td><td><span class="pct neutral" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">0.0%</span></td></tr>
+            <tr><td>🇩🇪 Germany</td><td>145</td><td><span class="pct positive" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">+3.2%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sessions By Source -->
+      <div class="chart-card">
+        <div class="chart-title">Sessions By Source</div>
+        <div class="chart-subtitle">Traffic sources breakdown</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">google / organic</span>
+            <div class="bar-track"><div class="bar-fill" style="width:72%;background:#1a73e8;">4,553</div></div>
+            <span class="bar-value">4,553</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">direct / none</span>
+            <div class="bar-track"><div class="bar-fill" style="width:18%;background:#34a853;">1,138</div></div>
+            <span class="bar-value">1,138</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">google / cpc</span>
+            <div class="bar-track"><div class="bar-fill" style="width:5%;background:#fbbc04;">316</div></div>
+            <span class="bar-value">316</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">referral</span>
+            <div class="bar-track"><div class="bar-fill" style="width:3%;background:#ea4335;">189</div></div>
+            <span class="bar-value">189</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">social</span>
+            <div class="bar-track"><div class="bar-fill" style="width:2%;background:#9aa0a6;">128</div></div>
+            <span class="bar-value">128</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-TABS -->
+    <div class="sub-tabs">
+      <div class="sub-tab active">Website Overview</div>
+      <div class="sub-tab">Content</div>
+      <div class="sub-tab">Conversions</div>
+      <div class="sub-tab">Ecommerce</div>
+      <div class="sub-tab">Marketing Channels</div>
+      <div class="sub-tab">Time</div>
+    </div>
+
+    <!-- Device Breakdown Table -->
+    <div class="chart-card" style="margin-top:16px;">
+      <div class="chart-title">Device Category Breakdown</div>
+      <table class="data-table" style="margin-top:12px;">
+        <thead><tr><th>Device category</th><th>Sessions</th><th>% of Total</th></tr></thead>
+        <tbody>
+          <tr><td>mobile</td><td>4,527</td><td>71.0%</td></tr>
+          <tr><td>desktop</td><td>1,694</td><td>26.6%</td></tr>
+          <tr><td>tablet</td><td>158</td><td>2.5%</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Sessions Distribution -->
+      <div class="stacked-bar-container" style="margin-top:20px;">
+        <div class="stacked-bar-label">Sessions Distribution</div>
+        <div class="stacked-bar">
+          <div class="stacked-segment" style="width:87%;background:#1a73e8;">87%</div>
+          <div class="stacked-segment" style="width:8%;background:#34a853;">8%</div>
+          <div class="stacked-segment" style="width:3%;background:#fbbc04;">3%</div>
+          <div class="stacked-segment" style="width:1%;background:#ea4335;">1%</div>
+          <div class="stacked-segment" style="width:1%;background:#9aa0a6;">1%</div>
+        </div>
+        <div class="stacked-legend">
+          <div class="stacked-legend-item"><div class="legend-dot" style="background:#1a73e8"></div>Segment 1 (87%)</div>
+          <div class="stacked-legend-item"><div class="legend-dot" style="background:#34a853"></div>Segment 2 (8%)</div>
+          <div class="stacked-legend-item"><div class="legend-dot" style="background:#fbbc04"></div>Segment 3 (3%)</div>
+          <div class="stacked-legend-item"><div class="legend-dot" style="background:#ea4335"></div>Segment 4 (1%)</div>
+          <div class="stacked-legend-item"><div class="legend-dot" style="background:#9aa0a6"></div>Segment 5 (1%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 2: ORGANIC OVERVIEW (GSC) ==================== -->
+<div class="page-section" id="page-1">
+  <div class="filter-bar">
+    <span class="filter-label">Period:</span>
+    <div class="filter-chip">Year ▾</div>
+    <div class="filter-chip">Percentage Change ▾</div>
+    <div class="filter-chip">Absolute Change ▾</div>
+    <div style="flex:1"></div>
+    <div class="filter-chip">Conversion ▾</div>
+    <div class="filter-chip">Behavior ▾</div>
+    <div class="filter-chip">Acquisition ▾</div>
+  </div>
+
+  <div class="main-content">
+    <!-- SCORECARDS -->
+    <div class="scorecards-row">
+      <div class="scorecard">
+        <div class="label">Engaged sessions</div>
+        <div class="value">5,904</div>
+        <div class="change">
+          <span class="abs">−3 from prev.</span>
+          <span class="pct negative">−0.1%</span>
+        </div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Sessions</div>
+        <div class="value">6,324</div>
+        <div class="change">
+          <span class="abs">−2 from prev.</span>
+          <span class="pct neutral">0.0%</span>
+        </div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Engagement rate</div>
+        <div class="value">93.36%</div>
+        <div class="change">
+          <span class="abs">−0.02% from prev.</span>
+        </div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Average session duration</div>
+        <div class="value">00:02:45</div>
+        <div class="change">
+          <span class="abs">00:00:20 from prev.</span>
+          <span class="pct positive">14.5%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Sessions Over Time</div>
+        <div class="chart-subtitle">Organic search sessions — Current vs Previous period</div>
+        <div class="line-chart">
+          <svg viewBox="0 0 500 180" preserveAspectRatio="none">
+            <line x1="40" y1="20" x2="480" y2="20" stroke="#f1f3f4" stroke-width="1"/>
+            <line x1="40" y1="60" x2="480" y2="60" stroke="#f1f3f4" stroke-width="1"/>
+            <line x1="40" y1="100" x2="480" y2="100" stroke="#f1f3f4" stroke-width="1"/>
+            <line x1="40" y1="140" x2="480" y2="140" stroke="#f1f3f4" stroke-width="1"/>
+            <text x="35" y="24" text-anchor="end" font-size="9" fill="#80868b">2K</text>
+            <text x="35" y="64" text-anchor="end" font-size="9" fill="#80868b">1.5K</text>
+            <text x="35" y="104" text-anchor="end" font-size="9" fill="#80868b">1K</text>
+            <text x="35" y="144" text-anchor="end" font-size="9" fill="#80868b">500</text>
+            <path d="M40,80 C80,70 120,90 160,60 S240,100 280,50 S360,110 400,40 S440,70 480,55" fill="none" stroke="#dadce0" stroke-width="2" stroke-dasharray="5,3"/>
+            <path d="M40,90 C80,75 120,95 160,65 S240,105 280,55 S360,115 400,45 S440,75 480,60" fill="none" stroke:#34a853" stroke-width="2.5"/>
+            <path d="M40,90 C80,75 120,95 160,65 S240,105 280,55 S360,115 400,45 S440,75 480,60 L480,170 L40,170 Z" fill="url(#greenGrad)" opacity="0.15"/>
+            <defs>
+              <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#34a853"/>
+                <stop offset="100%" stop-color="#34a853" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="chart-x-labels">
+            <span>Apr 1</span><span>Apr 5</span><span>Apr 10</span><span>Apr 15</span><span>Apr 20</span><span>Apr 25</span><span>Apr 30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Sessions By Device</div>
+        <div class="chart-subtitle">Organic traffic device breakdown</div>
+        <div class="donut-container">
+          <div class="donut" style="background: conic-gradient(#34a853 0% 71%, #1a73e8 71% 97.6%, #fbbc04 97.6% 100%);">
+            <div class="donut-center">
+              <div class="big">5,904</div>
+              <div class="small">Total</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#34a853"></div>
+              <span class="legend-label">mobile</span>
+              <span class="legend-value">4,192</span>
+              <span class="legend-pct">71%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#1a73e8"></div>
+              <span class="legend-label">desktop</span>
+              <span class="legend-value">1,556</span>
+              <span class="legend-pct">26.4%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#fbbc04"></div>
+              <span class="legend-label">tablet</span>
+              <span class="legend-value">156</span>
+              <span class="legend-pct">2.6%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Sessions By Country</div>
+        <div class="chart-subtitle">Organic traffic by country</div>
+        <table class="data-table">
+          <thead><tr><th>Country</th><th>Sessions</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td>🇨🇦 Canada</td><td>3,845</td><td><span class="pct positive" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">+1.8%</span></td></tr>
+            <tr><td>🇺🇸 United States</td><td>1,198</td><td><span class="pct negative" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">−0.9%</span></td></tr>
+            <tr><td>🇫🇷 France</td><td>412</td><td><span class="pct positive" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">+0.5%</span></td></tr>
+            <tr><td>🇬🇧 United Kingdom</td><td>221</td><td><span class="pct neutral" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">0.0%</span></td></tr>
+            <tr><td>🇩🇪 Germany</td><td>128</td><td><span class="pct positive" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;">+2.8%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Sessions By Source</div>
+        <div class="chart-subtitle">Organic traffic sources</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">google / organic</span>
+            <div class="bar-track"><div class="bar-fill" style="width:85%;background:#34a853;">5,018</div></div>
+            <span class="bar-value">5,018</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">bing / organic</span>
+            <div class="bar-track"><div class="bar-fill" style="width:8%;background:#1a73e8;">472</div></div>
+            <span class="bar-value">472</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">yahoo / organic</span>
+            <div class="bar-track"><div class="bar-fill" style="width:4%;background:#fbbc04;">236</div></div>
+            <span class="bar-value">236</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">other</span>
+            <div class="bar-track"><div class="bar-fill" style="width:3%;background:#9aa0a6;">178</div></div>
+            <span class="bar-value">178</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-TABS -->
+    <div class="sub-tabs">
+      <div class="sub-tab active">Website Overview</div>
+      <div class="sub-tab">Content</div>
+      <div class="sub-tab">Conversions</div>
+      <div class="sub-tab">Ecommerce</div>
+      <div class="sub-tab">Marketing Channels</div>
+      <div class="sub-tab">Time</div>
+    </div>
+
+    <!-- Additional Metrics -->
+    <div class="chart-card" style="margin-top:16px;">
+      <div class="chart-title">Key Events & Conversions</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:12px;">
+        <div style="background:#f8f9fa;border-radius:8px;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#202124;">138</div>
+          <div style="font-size:12px;color:#5f6368;margin-top:4px;">Key events</div>
+          <div style="font-size:11px;color:#80868b;margin-top:2px;">−13 from prev. <span style="color:#c5221f;">−8.6%</span></div>
+        </div>
+        <div style="background:#f8f9fa;border-radius:8px;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#202124;">2.18%</div>
+          <div style="font-size:12px;color:#5f6368;margin-top:4px;">Goal Conversion Rate</div>
+          <div style="font-size:11px;color:#80868b;margin-top:2px;">−0.20% from prev.</div>
+        </div>
+        <div style="background:#f8f9fa;border-radius:8px;padding:16px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#202124;">2%</div>
+          <div style="font-size:12px;color:#5f6368;margin-top:4px;">Conversion Rate</div>
+          <div style="font-size:11px;color:#80868b;margin-top:2px;">−8.6% from prev.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAGE 3: GMB OVERVIEW ==================== -->
+<div class="page-section" id="page-2">
+  <div class="filter-bar">
+    <span class="filter-label">Period:</span>
+    <div class="filter-chip">Year ▾</div>
+    <div style="flex:1"></div>
+  </div>
+
+  <div class="main-content">
+    <div class="scorecards-row">
+      <div class="scorecard">
+        <div class="label">Business Views</div>
+        <div class="value">—</div>
+        <div class="change"><span class="abs" style="color:#80868b;">No data available</span></div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Search Views</div>
+        <div class="value">—</div>
+        <div class="change"><span class="abs" style="color:#80868b;">No data available</span></div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Map Views</div>
+        <div class="value">—</div>
+        <div class="change"><span class="abs" style="color:#80868b;">No data available</span></div>
+      </div>
+      <div class="scorecard">
+        <div class="label">Direction Requests</div>
+        <div class="value">—</div>
+        <div class="change"><span class="abs" style="color:#80868b;">No data available</span></div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Customer Actions</div>
+        <div class="chart-subtitle">Website clicks, calls, direction requests</div>
+        <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#80868b;font-size:13px;">
+          📊 No GMB data connected yet
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Views Over Time</div>
+        <div class="chart-subtitle">Business profile views trend</div>
+        <div style="display:flex;align-items:center;justify-content:center;height:200px;color:#80868b;font-size:13px;">
+          📊 No GMB data connected yet
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>Data Last Updated: 5/25/2026 1:48:04 AM</span>
+  <span>Privacy Policy</span>
+</div>
+
+<script>
+function switchPage(idx) {
+  document.querySelectorAll('.page-section').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.page-tab').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+</script>
+</body>
+</html>
